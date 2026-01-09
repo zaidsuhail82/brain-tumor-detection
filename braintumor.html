@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Detection AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --accent: #00ff88;
+            --bg-dark: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .main-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin: 0;
+            background: linear-gradient(to right, #00d2ff, #92fe9d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .team-badge {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        /* The Medical Viewfinder */
+        #view-panel {
+            position: relative;
+            width: 380px;
+            height: 380px;
+            margin: 30px auto;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid rgba(0, 210, 255, 0.3);
+            background: black;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.15);
+        }
+
+        /* Futuristic Scanning Line */
+        #view-panel::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            animation: scan 3s linear infinite;
+            z-index: 10;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        #webcam-container canvas, #img-preview {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+        }
+
+        /* Controls */
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .btn-camera { background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); color: white; }
+        .btn-upload { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(0, 210, 255, 0.4); }
+
+        /* Classification Results */
+        .results-area {
+            text-align: left;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 16px;
+        }
+
+        .result-item { margin-bottom: 15px; }
+        .result-info { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem; }
+        
+        .progress-container {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 0.5s ease-out;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .status-dot {
+            height: 8px; width: 8px; background: var(--accent);
+            border-radius: 50%; display: inline-block; margin-right: 8px;
+            box-shadow: 0 0 10px var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-card">
+    <h1>Brain Tumor Detection using MRI</h1>
+    <div class="team-badge">
+        Muhammad Zaid Suhail • Malaika • Trushi • Mridula • Ramya
+    </div>
+
+    <div id="view-panel">
+        <div id="webcam-container"></div>
+        <img id="img-preview" style="display:none;" />
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-camera" onclick="startCamera()">Live Scan</button>
+        <label for="file-in" class="btn btn-upload">Upload MRI</label>
+        <input type="file" id="file-in" accept="image/*" style="display:none">
+    </div>
+
+    <div id="status" style="margin-bottom: 15px; font-size: 0.85rem; color: #94a3b8;">
+        <span class="status-dot"></span> System Ready
+    </div>
+
+    <div class="results-area" id="label-container">
+        </div>
+</div>
+
+<script>
+    const MODEL_URL = "https://teachablemachine.withgoogle.com/models/hnfOgTOr_/";
+    let model, webcam, labelContainer, maxPredictions;
+    let active = false;
+
+    async function init() {
+        model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+        maxPredictions = model.getTotalClasses();
+        labelContainer = document.getElementById("label-container");
+        
+        for (let i = 0; i < maxPredictions; i++) {
+            labelContainer.innerHTML += `
+                <div class="result-item">
+                    <div class="result-info">
+                        <span id="name-${i}">Class</span>
+                        <span id="prob-${i}">0%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div id="bar-${i}" class="progress-bar"></div>
+                    </div>
+                </div>`;
+        }
+    }
+
+    async function startCamera() {
+        active = true;
+        document.getElementById("img-preview").style.display = "none";
+        document.getElementById("webcam-container").style.display = "block";
+        webcam = new tmImage.Webcam(380, 380, true);
+        await webcam.setup();
+        await webcam.play();
+        window.requestAnimationFrame(loop);
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+    }
+
+    async function loop() {
+        if(active) {
+            webcam.update();
+            await predict(webcam.canvas);
+            window.requestAnimationFrame(loop);
+        }
+    }
+
+    document.getElementById('file-in').addEventListener('change', e => {
+        active = false;
+        if(webcam) webcam.stop();
+        const reader = new FileReader();
+        reader.onload = event => {
+            const img = document.getElementById("img-preview");
+            img.src = event.target.result;
+            img.style.display = "block";
+            document.getElementById("webcam-container").style.display = "none";
+            img.onload = () => predict(img);
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    });
+
+    async function predict(input) {
+        const prediction = await model.predict(input);
+        for (let i = 0; i < maxPredictions; i++) {
+            const p = (prediction[i].probability * 100).toFixed(1);
+            document.getElementById(`name-${i}`).innerText = prediction[i].className;
+            document.getElementById(`prob-${i}`).innerText = p + "%";
+            document.getElementById(`bar-${i}`).style.width = p + "%";
+        }
+    }
+
+    init();
+</script>
+
+</body>
+</html>
