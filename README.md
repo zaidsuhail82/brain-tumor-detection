@@ -1,7 +1,7 @@
 # 🧠 NeuroScan AI: Brain Tumor Classification
 **A Modern, Real-Time Web Solution for MRI Analysis**
 
-[![Live Demo](https://zaidsuhail82.github.io/brain-tumor-detection/)
+[![Live Demo](https://img.shields.io/badge/Demo-Live_Site-green?style=for-the-badge)](https://zaidsuhail82.github.io/brain-tumor-detection/)
 [![GitHub License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
 ---
@@ -43,3 +43,4 @@ Developed as a collaborative AI Health Initiative by:
 1. **Local Processing:** MRI scans are processed entirely in the browser. No medical data is uploaded to any server.
 
 2. **Clinical Aid:** This tool is intended to assist healthcare professionals, not replace clinical diagnosis.
+
