@@ -29,12 +29,10 @@ NeuroScan AI is a **proof-of-concept** medical diagnostic tool that utilizes Dee
 | :---: |
 | ![Interface Screenshot](interface_screenshot.jpg) |
 
-> *Note: Replace the images above by uploading 'interface_screenshot.jpg' to this repository.*
-
 ---
 
 ## 👥 The Team
-Developed as a collaborative AI Health Initiative by:
+Developed as an AI Health Initiative by:
 * **Muhammad Zaid Suhail**
 
 ---
@@ -43,5 +41,6 @@ Developed as a collaborative AI Health Initiative by:
 1. **Local Processing:** MRI scans are processed entirely in the browser. No medical data is uploaded to any server.
 
 2. **Clinical Aid:** This tool is intended to assist healthcare professionals, not replace clinical diagnosis.
+
 
 
